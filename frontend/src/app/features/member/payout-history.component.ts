@@ -10,7 +10,7 @@ import { EqubRound } from '../../shared/models/models';
   selector: 'app-payout-history',
   imports: [CircleNavComponent, RoundTimelineComponent],
   template: `
-    <header class="page-head"><div><p class="eyebrow">Member</p><h1>Payout history</h1><p class="lede">Who received the recorded pot, in the fixed order.</p></div></header>
+    <header class="page-head"><div><p class="eyebrow">Member</p><h1>Payout History</h1><p class="lede">Payout records show the fixed receiver and recorded pot. They do not send funds.</p></div></header>
     <app-circle-nav [id]="id" mode="member" />
     @if (loading()) { <p class="state">Loading payout history...</p> }
     @else if (error()) { <p class="state bad">{{ error() }}</p> }

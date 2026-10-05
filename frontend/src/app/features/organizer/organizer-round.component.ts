@@ -16,7 +16,7 @@ import { Circle, CircleSummary, EqubRound, Member } from '../../shared/models/mo
       <div>
         <p class="eyebrow">Organizer</p>
         <h1>Current round</h1>
-        <p class="lede">Record one contribution per member. Someone who already received the pot still appears here.</p>
+        <p class="lede">Record one contribution per member. The fixed receiver and members with payout records from earlier rounds still contribute.</p>
       </div>
     </header>
     <app-circle-nav [id]="id" />
@@ -27,14 +27,13 @@ import { Circle, CircleSummary, EqubRound, Member } from '../../shared/models/mo
       @if (message()) { <p class="banner good">{{ message() }}</p> }
       @if (error()) { <p class="banner bad">{{ error() }}</p> }
       @if (circle()!.status === 'FORMING') {
-        <p class="state">Start the equb before recording payments. <a [routerLink]="['/app/organizer/circles', id, 'start']">Go to start</a></p>
+        <p class="state">Start the equb before recording contributions. <a [routerLink]="['/app/organizer/circles', id, 'start']">Go to start</a></p>
       } @else if (circle()!.status === 'COMPLETED') {
-        <p class="banner good">Every member has received exactly once. This equb is complete.</p>
+        <p class="banner good">Every member has one payout record. This equb is complete.</p>
       } @else if (!round()) {
         <article class="panel">
           <h2>No open round</h2>
-          <p>The previous round is paid out. Open the next one when the circle meets again.</p>
-          <button class="button" type="button" [disabled]="busy()" (click)="openNext()">Open next round</button>
+          <p>The next round opens automatically after a payout record is created.</p>
         </article>
       } @else {
         <article class="panel">
@@ -42,20 +41,25 @@ import { Circle, CircleSummary, EqubRound, Member } from '../../shared/models/mo
             <h2>Round {{ round()!.roundNumber }} of {{ summary()?.totalRounds }}</h2>
             <app-status-badge [status]="round()!.status" />
           </div>
+          <p>Fixed receiver: <strong>{{ round()!.receiverName }}</strong></p>
+          <h3>Contribution status</h3>
           <ul class="people">
             @for (member of members(); track member.id) {
               <li [class.received]="member.hasReceived">
                 <span>
                   <strong>{{ member.fullName }}</strong>
-                  @if (member.id === round()!.receiverMemberId) { <em>Receiver this round</em> }
-                  @if (member.hasReceived) { <em class="still">Already received — still pays</em> }
+                  @if (member.id === round()!.receiverMemberId) { <em>Fixed receiver this round</em> }
+                  @if (member.hasReceived) { <em class="still">Has a payout record — still contributes</em> }
                 </span>
                 @if (member.paidCurrentRound) {
                   <app-status-badge status="RECORDED" label="Paid" />
                 } @else {
-                  <button class="button" type="button" [disabled]="busyId() === member.id" (click)="mark(member)">
-                    {{ busyId() === member.id ? 'Saving...' : 'Mark paid' }}
-                  </button>
+                  <span class="row">
+                    <app-status-badge status="UNPAID" label="Unpaid" />
+                    <button class="button" type="button" [disabled]="busyId() === member.id" (click)="mark(member)">
+                      {{ busyId() === member.id ? 'Saving...' : 'Mark as Paid' }}
+                    </button>
+                  </span>
                 }
               </li>
             }
@@ -77,7 +81,6 @@ export class OrganizerRoundComponent implements OnInit {
   readonly loading = signal(true);
   readonly error = signal('');
   readonly message = signal('');
-  readonly busy = signal(false);
   readonly busyId = signal('');
 
   ngOnInit(): void {
@@ -89,30 +92,14 @@ export class OrganizerRoundComponent implements OnInit {
     if (!round) return;
     this.busyId.set(member.id);
     this.error.set('');
-    this.api.recordPayment(round.id, member.id).subscribe({
+    this.api.recordContribution(round.id, member.id).subscribe({
       next: () => {
         this.busyId.set('');
-        this.message.set(`${member.fullName} is recorded as paid.`);
+        this.message.set(`Contribution recorded for ${member.fullName}. Status: Paid.`);
         this.reload();
       },
       error: (err: unknown) => {
         this.busyId.set('');
-        this.error.set(apiError(err));
-      },
-    });
-  }
-
-  openNext(): void {
-    this.busy.set(true);
-    this.error.set('');
-    this.api.openNext(this.id).subscribe({
-      next: (round) => {
-        this.busy.set(false);
-        this.message.set(`Round ${round.roundNumber} is open. ${round.receiverName} is the fixed receiver.`);
-        this.reload();
-      },
-      error: (err: unknown) => {
-        this.busy.set(false);
         this.error.set(apiError(err));
       },
     });

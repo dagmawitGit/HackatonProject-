@@ -8,7 +8,7 @@ import {
   EqubRound,
   Member,
   Notice,
-  PaymentRecord,
+  ContributionRecord,
   PayoutResult,
 } from '../../shared/models/models';
 
@@ -74,12 +74,12 @@ export class CircleService {
     return this.http.post<EqubRound>(`${API_URL}/circles/${id}/rounds/next`, {});
   }
 
-  recordPayment(roundId: string, circleMemberId: string): Observable<PaymentRecord> {
-    return this.http.post<PaymentRecord>(`${API_URL}/rounds/${roundId}/payments`, { circleMemberId });
+  recordContribution(roundId: string, circleMemberId: string): Observable<ContributionRecord> {
+    return this.http.post<ContributionRecord>(`${API_URL}/rounds/${roundId}/contributions`, { circleMemberId });
   }
 
-  circlePayments(id: string): Observable<PaymentRecord[]> {
-    return this.http.get<PaymentRecord[]>(`${API_URL}/circles/${id}/payments`);
+  circleContributions(id: string): Observable<ContributionRecord[]> {
+    return this.http.get<ContributionRecord[]>(`${API_URL}/circles/${id}/contributions`);
   }
 
   payout(roundId: string): Observable<PayoutResult> {

@@ -11,7 +11,6 @@ import { CircleSummary } from '../../shared/models/models';
       <article class="stat stat-gold">
         <p>{{ potLabel }}</p>
         <strong>{{ summary.currentPot | etb }}</strong>
-        <span>Expected {{ summary.expectedPot | etb }}</span>
       </article>
       <article class="stat">
         <p>{{ paidLabel }}</p>
@@ -34,6 +33,6 @@ import { CircleSummary } from '../../shared/models/models';
 export class EqubSnapshotComponent {
   @Input({ required: true }) summary!: CircleSummary;
   @Input() potLabel = 'Current pot';
-  @Input() paidLabel = 'Paid';
+  @Input() paidLabel = 'Contribution status';
   @Input() receiverLabel = 'Receiver';
 }

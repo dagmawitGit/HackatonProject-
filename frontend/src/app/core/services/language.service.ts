@@ -5,7 +5,7 @@ export type LangCode = 'en' | 'om' | 'am';
 const DICT: Record<LangCode, Record<string, string>> = {
   en: {
     tagline: 'Track Every Contribution. Protect Every Round.',
-    ledger: 'Digital record book. Amounts are recorded figures. No money is transferred.',
+    ledger: 'Digital record book for contributions and payouts. Amounts are recorded figures; no funds are sent.',
     login: 'Log in',
     register: 'Register',
     logout: 'Log out',
@@ -13,7 +13,7 @@ const DICT: Record<LangCode, Record<string, string>> = {
     members: 'Members',
     round: 'Current round',
     payout: 'Payout',
-    ledgerNav: 'Payment ledger',
+    ledgerNav: 'Contribution ledger',
     history: 'Round history',
     summary: 'Summary',
     profile: 'Profile',
@@ -32,7 +32,7 @@ const DICT: Record<LangCode, Record<string, string>> = {
   },
   om: {
     tagline: 'Gumaacha hunda hordofi. Marsaa hunda eegi.',
-    ledger: 'Galmee dijitaalaati. Maallaqa hin dabarsu.',
+    ledger: 'Galmee gumaachaa fi kaffaltii ti. Maallaqa hin ergu.',
     login: 'Seeni',
     register: 'Galmaa\'i',
     logout: 'Ba\'i',
@@ -40,7 +40,7 @@ const DICT: Record<LangCode, Record<string, string>> = {
     members: 'Miseensota',
     round: 'Marsaa ammaa',
     payout: 'Kaffaltii',
-    ledgerNav: 'Galmee kaffaltii',
+    ledgerNav: 'Galmee gumaachaa',
     history: 'Seenaa marsaa',
     summary: 'Cuunfaa',
     profile: 'Eenyummaa',
@@ -59,7 +59,7 @@ const DICT: Record<LangCode, Record<string, string>> = {
   },
   am: {
     tagline: 'እያንዳንዱን መዋጮ ተከታተል። እያንዳንዱን ዙር ጠብቅ።',
-    ledger: 'የዲጂታል መዝገብ ደብተር ነው። ገንዘብ አይተላለፍም።',
+    ledger: 'የመዋጮና የክፍያ ዲጂታል መዝገብ ነው። ገንዘብ አይላክም።',
     login: 'ግባ',
     register: 'ተመዝገብ',
     logout: 'ውጣ',
@@ -67,7 +67,7 @@ const DICT: Record<LangCode, Record<string, string>> = {
     members: 'አባላት',
     round: 'የአሁኑ ዙር',
     payout: 'ክፍያ',
-    ledgerNav: 'የክፍያ መዝገብ',
+    ledgerNav: 'የመዋጮ መዝገብ',
     history: 'የዙር ታሪክ',
     summary: 'ማጠቃለያ',
     profile: 'መገለጫ',

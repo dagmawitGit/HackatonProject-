@@ -9,7 +9,7 @@ import { EtbPipe } from '../../shared/pipes/etb.pipe';
   selector: 'app-admin-reports',
   imports: [StatusBadgeComponent, EtbPipe],
   template: `
-    <header class="page-head"><div><p class="eyebrow">Admin</p><h1>Reports</h1><p class="lede">Recorded totals only. EkubCircle is not a payment report from a bank.</p></div></header>
+    <header class="page-head"><div><p class="eyebrow">Admin</p><h1>Reports</h1><p class="lede">Recorded contribution and payout ledger totals only; no funds are sent.</p></div></header>
     @if (loading()) { <p class="state">Loading reports...</p> }
     @else if (error()) { <p class="state bad">{{ error() }}</p> }
     @else if (rows().length === 0) { <p class="state">No equbs to report yet.</p> }

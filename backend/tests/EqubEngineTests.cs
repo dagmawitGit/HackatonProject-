@@ -137,9 +137,17 @@ public class EqubEngineTests : IDisposable
             _members.AddAsync(circle.Id, new AddMemberRequest { Email = abel.Email }, organizer.Id, CancellationToken.None));
         Assert.Equal(409, duplicate.StatusCode);
 
-        await _members.RemoveAsync(circle.Id, (await _members.ListAsync(circle.Id, organizer.Id, CancellationToken.None))[0].Id, organizer.Id, CancellationToken.None);
+        var roster = await _members.ListAsync(circle.Id, organizer.Id, CancellationToken.None);
+        Assert.Equal(2, roster.Count);
+        Assert.Equal("Hana Bekele", roster[0].FullName);
+        var removeOrganizer = await Assert.ThrowsAsync<ApiException>(() =>
+            _members.RemoveAsync(circle.Id, roster[0].Id, organizer.Id, CancellationToken.None));
+        Assert.Equal(400, removeOrganizer.StatusCode);
+
+        await _members.RemoveAsync(circle.Id, roster[1].Id, organizer.Id, CancellationToken.None);
         var after = await _members.ListAsync(circle.Id, organizer.Id, CancellationToken.None);
-        Assert.Empty(after);
+        Assert.Single(after);
+        Assert.Equal("Hana Bekele", after[0].FullName);
     }
 
     [Fact]
@@ -162,13 +170,13 @@ public class EqubEngineTests : IDisposable
         Assert.Equal("Dawit Kebede", Assert.Single(locked.WaitingFor));
 
         var blocked = await Assert.ThrowsAsync<ApiException>(() => _payouts.PayOutAsync(round!.Id, circle.OrganizerId, CancellationToken.None));
-        Assert.Equal(409, blocked.StatusCode);
-        Assert.Contains("locked", blocked.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(400, blocked.StatusCode);
+        Assert.Equal("Cannot pay out. Not all members have contributed.", blocked.Message);
 
         await _payments.RecordAsync(round!.Id, new RecordPaymentRequest { CircleMemberId = circle.Roster[5].Id }, circle.OrganizerId, CancellationToken.None);
         var duplicate = await Assert.ThrowsAsync<ApiException>(() =>
             _payments.RecordAsync(round.Id, new RecordPaymentRequest { CircleMemberId = circle.Roster[5].Id }, circle.OrganizerId, CancellationToken.None));
-        Assert.Equal(409, duplicate.StatusCode);
+        Assert.Equal(400, duplicate.StatusCode);
 
         var ready = await _circles.SummaryAsync(circle.CircleId, circle.OrganizerId, CancellationToken.None);
         Assert.Equal(6, ready.PaidCount);
@@ -183,8 +191,13 @@ public class EqubEngineTests : IDisposable
         Assert.Equal("PAID_OUT", payout.Status);
         Assert.Equal(circle.Roster[0].Id, payout.ReceiverMemberId);
 
+        var nextRound = await _rounds.CurrentAsync(circle.CircleId, circle.OrganizerId, CancellationToken.None);
+        Assert.NotNull(nextRound);
+        Assert.Equal(2, nextRound.RoundNumber);
+        Assert.Equal("Abel Tesfaye", nextRound.ReceiverName);
+
         var again = await Assert.ThrowsAsync<ApiException>(() => _payouts.PayOutAsync(round.Id, circle.OrganizerId, CancellationToken.None));
-        Assert.Equal(409, again.StatusCode);
+        Assert.Equal(400, again.StatusCode);
     }
 
     [Fact]
@@ -195,7 +208,8 @@ public class EqubEngineTests : IDisposable
         await PayEveryoneAsync(first!.Id, circle);
         await _payouts.PayOutAsync(first.Id, circle.OrganizerId, CancellationToken.None);
 
-        var second = await _rounds.OpenNextAsync(circle.CircleId, circle.OrganizerId, CancellationToken.None);
+        var second = await _rounds.CurrentAsync(circle.CircleId, circle.OrganizerId, CancellationToken.None);
+        Assert.NotNull(second);
         Assert.Equal(2, second.RoundNumber);
         Assert.Equal("Abel Tesfaye", second.ReceiverName);
         Assert.Equal("OPEN", second.Status);
@@ -209,12 +223,29 @@ public class EqubEngineTests : IDisposable
         Assert.Contains("Abel Tesfaye", summary.WaitingFor);
 
         var early = await Assert.ThrowsAsync<ApiException>(() => _payouts.PayOutAsync(second.Id, circle.OrganizerId, CancellationToken.None));
-        Assert.Equal(409, early.StatusCode);
+        Assert.Equal(400, early.StatusCode);
 
         var future = await _rounds.ListAsync(circle.CircleId, circle.OrganizerId, CancellationToken.None);
         var roundThree = future.Single(r => r.RoundNumber == 3);
         var skipped = await Assert.ThrowsAsync<ApiException>(() => _payouts.PayOutAsync(roundThree.Id, circle.OrganizerId, CancellationToken.None));
         Assert.Equal(400, skipped.StatusCode);
+    }
+
+    [Fact]
+    public async Task Payout_is_rejected_when_fixed_receiver_already_received()
+    {
+        var circle = await StartUnityAsync();
+        var round = await _rounds.CurrentAsync(circle.CircleId, circle.OrganizerId, CancellationToken.None);
+        await PayEveryoneAsync(round!.Id, circle);
+
+        var receiver = await _db.CircleMembers.SingleAsync(member => member.Id == round.ReceiverMemberId);
+        receiver.HasReceived = true;
+        await _db.SaveChangesAsync();
+
+        var blocked = await Assert.ThrowsAsync<ApiException>(() =>
+            _payouts.PayOutAsync(round.Id, circle.OrganizerId, CancellationToken.None));
+        Assert.Equal(400, blocked.StatusCode);
+        Assert.Equal("Member has already received the Equb payout.", blocked.Message);
     }
 
     [Fact]
@@ -229,7 +260,6 @@ public class EqubEngineTests : IDisposable
             MeetingLabel = "Weekly"
         }, organizer.Id, CancellationToken.None);
 
-        await _members.AddAsync(circle.Id, new AddMemberRequest { Email = organizer.Email }, organizer.Id, CancellationToken.None);
         await _members.AddAsync(circle.Id, new AddMemberRequest { Email = abel.Email }, organizer.Id, CancellationToken.None);
         await _circles.StartAsync(circle.Id, organizer.Id, CancellationToken.None);
 
@@ -240,8 +270,6 @@ public class EqubEngineTests : IDisposable
             await PayEveryoneAsync(round!.Id, new StartedCircle(circle.Id, organizer.Id, roster));
             var payout = await _payouts.PayOutAsync(round.Id, organizer.Id, CancellationToken.None);
             Assert.Equal(roster[roundNumber - 1].FullName, payout.ReceiverName);
-            if (roundNumber == 1)
-                await _rounds.OpenNextAsync(circle.Id, organizer.Id, CancellationToken.None);
         }
 
         var done = await _circles.GetAsync(circle.Id, organizer.Id, CancellationToken.None);
@@ -250,8 +278,7 @@ public class EqubEngineTests : IDisposable
         Assert.Equal(100, summary.CompletionPercentage);
         Assert.Equal(0, summary.RemainingReceivers);
 
-        var noNext = await Assert.ThrowsAsync<ApiException>(() => _rounds.OpenNextAsync(circle.Id, organizer.Id, CancellationToken.None));
-        Assert.Equal(409, noNext.StatusCode);
+        Assert.Null(await _rounds.CurrentAsync(circle.Id, organizer.Id, CancellationToken.None));
     }
 
     [Fact]
@@ -294,7 +321,7 @@ public class EqubEngineTests : IDisposable
     }
 
     [Fact]
-    public async Task Organizer_must_be_a_member_before_start()
+    public async Task Organizer_is_added_as_a_member_and_must_contribute()
     {
         var organizer = await RegisterAsync("Hana Bekele", "hana@test.et", UserRole.Organizer);
         var abel = await RegisterAsync("Abel Tesfaye", "abel@test.et", UserRole.Member);
@@ -304,12 +331,24 @@ public class EqubEngineTests : IDisposable
             ContributionAmount = 25000,
             MeetingLabel = "Monthly"
         }, organizer.Id, CancellationToken.None);
+        var createdRoster = await _members.ListAsync(circle.Id, organizer.Id, CancellationToken.None);
+        Assert.Single(createdRoster);
+        Assert.Equal("Hana Bekele", createdRoster[0].FullName);
+
         await _members.AddAsync(circle.Id, new AddMemberRequest { Email = abel.Email }, organizer.Id, CancellationToken.None);
         await _members.AddAsync(circle.Id, new AddMemberRequest { Email = (await RegisterAsync("Ruth Alemu", "ruth@test.et", UserRole.Member)).Email }, organizer.Id, CancellationToken.None);
+        await _circles.StartAsync(circle.Id, organizer.Id, CancellationToken.None);
 
-        var blocked = await Assert.ThrowsAsync<ApiException>(() => _circles.StartAsync(circle.Id, organizer.Id, CancellationToken.None));
-        Assert.Equal(400, blocked.StatusCode);
-        Assert.Contains("organizer must also be a member", blocked.Message, StringComparison.OrdinalIgnoreCase);
+        var round = await _rounds.CurrentAsync(circle.Id, organizer.Id, CancellationToken.None);
+        Assert.NotNull(round);
+        var organizerMember = (await _members.ListAsync(circle.Id, organizer.Id, CancellationToken.None))
+            .Single(member => member.UserId == organizer.Id);
+        await _payments.RecordAsync(round.Id, new RecordPaymentRequest { CircleMemberId = organizerMember.Id }, organizer.Id, CancellationToken.None);
+
+        var duplicate = await Assert.ThrowsAsync<ApiException>(() =>
+            _payments.RecordAsync(round.Id, new RecordPaymentRequest { CircleMemberId = organizerMember.Id }, organizer.Id, CancellationToken.None));
+        Assert.Equal(400, duplicate.StatusCode);
+        Assert.Equal("This member already has a contribution recorded for the current round.", duplicate.Message);
     }
 
     public void Dispose()
@@ -340,7 +379,6 @@ public class EqubEngineTests : IDisposable
             MeetingLabel = "Monthly"
         }, organizer.Id, CancellationToken.None);
 
-        await _members.AddAsync(circle.Id, new AddMemberRequest { Email = organizer.Email }, organizer.Id, CancellationToken.None);
         var others = new[]
         {
             ("Abel Tesfaye", "abel@test.et"),

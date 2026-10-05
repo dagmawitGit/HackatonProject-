@@ -30,7 +30,7 @@ import { CircleSummary, EqubRound } from '../../shared/models/models';
           <p>Completion {{ summary()!.completionPercentage }}% · {{ summary()!.receivedCount }} received · {{ summary()!.remainingReceivers }} remaining</p>
           <div class="bar"><span [style.width.%]="summary()!.completionPercentage"></span></div>
           <h3>Next receivers</h3>
-          @if (summary()!.nextReceivers.length === 0) { <p class="state">No one is left waiting for the pot.</p> }
+          @if (summary()!.nextReceivers.length === 0) { <p class="state">Every member has a payout record.</p> }
           <ol class="order">
             @for (name of summary()!.nextReceivers; track name) { <li>{{ name }}</li> }
           </ol>
@@ -39,7 +39,7 @@ import { CircleSummary, EqubRound } from '../../shared/models/models';
           <h2>Integrity</h2>
           <ul class="checks">
             <li [class.off]="!summary()!.integrity.allMembersVerified">All members verified</li>
-            <li [class.off]="!summary()!.integrity.paymentRecordsComplete">Payment records consistent</li>
+            <li [class.off]="!summary()!.integrity.paymentRecordsComplete">Contribution records consistent</li>
             <li [class.off]="!summary()!.integrity.receiverFromFixedOrder">Receiver determined by fixed order</li>
             <li [class.off]="!summary()!.integrity.noDuplicatePayout">No duplicate payout</li>
             <li [class.off]="!summary()!.integrity.currentRoundValid">Current round valid</li>

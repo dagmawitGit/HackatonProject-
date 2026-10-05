@@ -18,8 +18,8 @@ import { EqubRound } from '../../shared/models/models';
               <span>Round {{ round.roundNumber }}</span>
               <strong>{{ round.receiverName }}</strong>
             </div>
-            <app-status-badge [status]="round.status" />
-            <em>{{ round.payoutAmount ? (round.payoutAmount | etb) : 'Not paid out' }}</em>
+            <app-status-badge [status]="round.status" [label]="round.status === 'PAID_OUT' ? 'Payout recorded' : round.status" />
+            <em>{{ round.status === 'PAID_OUT' ? ('Payout record · ' + (round.payoutAmount | etb)) : 'No payout record' }}</em>
             <small>{{ (round.paidOutAt || round.openedAt) | date: 'medium' }}</small>
           </li>
         }
