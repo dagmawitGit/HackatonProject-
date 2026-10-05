@@ -1,12 +1,28 @@
-**/bin/
-**/obj/
-**/node_modules/
-**/dist/
-**/.angular/
-**/coverage/
+# .NET
+bin/
+obj/
+.vs/
 *.user
 *.suo
+
+# Node
+node_modules/
+dist/
+.angular/
+coverage/
+
+# Environment and secrets
 .env
 .env.*
 !.env.example
-appsettings.Local.json
+backend/appsettings.Development.json
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.idea/
+*.log
+
+# Local databases
+*.db
+*.sqlite
