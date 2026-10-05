@@ -33,8 +33,7 @@ import { Circle, CircleSummary, EqubRound, Member } from '../../shared/models/mo
       } @else if (!round()) {
         <article class="panel">
           <h2>No open round</h2>
-          <p>The previous round is paid out. Open the next one when the circle meets again.</p>
-          <button class="button" type="button" [disabled]="busy()" (click)="openNext()">Open next round</button>
+          <p>The previous round is paid out. The next round opens automatically after the payout is recorded.</p>
         </article>
       } @else {
         <article class="panel">
@@ -54,7 +53,7 @@ import { Circle, CircleSummary, EqubRound, Member } from '../../shared/models/mo
                   <app-status-badge status="RECORDED" label="Paid" />
                 } @else {
                   <button class="button" type="button" [disabled]="busyId() === member.id" (click)="mark(member)">
-                    {{ busyId() === member.id ? 'Saving...' : 'Mark paid' }}
+                    {{ busyId() === member.id ? 'Saving...' : 'Record contribution' }}
                   </button>
                 }
               </li>
@@ -92,27 +91,11 @@ export class OrganizerRoundComponent implements OnInit {
     this.api.recordPayment(round.id, member.id).subscribe({
       next: () => {
         this.busyId.set('');
-        this.message.set(`${member.fullName} is recorded as paid.`);
+        this.message.set(`${member.fullName} is recorded as contributing.`);
         this.reload();
       },
       error: (err: unknown) => {
         this.busyId.set('');
-        this.error.set(apiError(err));
-      },
-    });
-  }
-
-  openNext(): void {
-    this.busy.set(true);
-    this.error.set('');
-    this.api.openNext(this.id).subscribe({
-      next: (round) => {
-        this.busy.set(false);
-        this.message.set(`Round ${round.roundNumber} is open. ${round.receiverName} is the fixed receiver.`);
-        this.reload();
-      },
-      error: (err: unknown) => {
-        this.busy.set(false);
         this.error.set(apiError(err));
       },
     });

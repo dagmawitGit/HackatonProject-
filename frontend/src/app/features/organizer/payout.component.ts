@@ -36,8 +36,7 @@ import { CircleSummary, EqubRound, PayoutResult } from '../../shared/models/mode
             <p>Every member has received exactly once.</p>
           } @else {
             <h2>No open round</h2>
-            <p>Open the next round when the circle meets again. The previous receiver still has to pay.</p>
-            <button class="button" type="button" [disabled]="busy()" (click)="openNext()">Open next round</button>
+            <p>The next round opens automatically after a payout is recorded. Await the next cycle.</p>
           }
         </article>
       } @else {
@@ -93,22 +92,6 @@ export class PayoutComponent implements OnInit {
 
   ngOnInit(): void {
     this.reload();
-  }
-
-  openNext(): void {
-    this.busy.set(true);
-    this.error.set('');
-    this.api.openNext(this.id).subscribe({
-      next: (round) => {
-        this.busy.set(false);
-        this.message.set(`Round ${round.roundNumber} is open. ${round.receiverName} receives if everyone pays.`);
-        this.reload();
-      },
-      error: (err: unknown) => {
-        this.busy.set(false);
-        this.error.set(apiError(err));
-      },
-    });
   }
 
   payout(): void {

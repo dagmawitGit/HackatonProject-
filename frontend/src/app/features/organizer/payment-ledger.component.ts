@@ -13,8 +13,8 @@ import { PaymentRecord } from '../../shared/models/models';
     <header class="page-head">
       <div>
         <p class="eyebrow">Organizer</p>
-        <h1>Payment ledger</h1>
-        <p class="lede">Every recorded contribution in this equb. Duplicate payments are rejected by the server.</p>
+        <h1>Contribution ledger</h1>
+        <p class="lede">Every recorded contribution in this equb. Duplicate contributions are rejected by the server.</p>
       </div>
     </header>
     <app-circle-nav [id]="id" />
