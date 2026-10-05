@@ -45,34 +45,35 @@ public class EqubRuleService
     public void EnsureCanRecordPayment(Round round, CircleMember member, bool alreadyPaid)
     {
         if (round.Status == RoundStatus.PaidOut)
-            throw new ApiException(StatusCodes.Status409Conflict, "This round is already closed. Payments cannot be changed.");
+            throw new ApiException(StatusCodes.Status400BadRequest, "This round is already closed. Contributions cannot be changed.");
 
         if (round.Status != RoundStatus.Open)
-            throw new ApiException(StatusCodes.Status400BadRequest, "Payments can only be recorded for the current open round.");
+            throw new ApiException(StatusCodes.Status400BadRequest, "Contributions can only be recorded for the current open round.");
 
         if (member.CircleId != round.CircleId)
             throw new ApiException(StatusCodes.Status400BadRequest, "That person is not a member of this equb.");
 
         if (alreadyPaid)
-            throw new ApiException(StatusCodes.Status409Conflict, "This member already has a payment for the current round.");
+            throw new ApiException(StatusCodes.Status400BadRequest, "This member already has a contribution recorded for the current round.");
     }
 
-    public void EnsureCanPayOut(Round round, int memberCount, int paidCount, CircleMember receiver)
+    public void EnsureCanPayOut(Round round, IReadOnlyCollection<CircleMember> members, CircleMember receiver)
     {
         if (round.Status == RoundStatus.PaidOut)
-            throw new ApiException(StatusCodes.Status409Conflict, "This round has already been paid out.");
+            throw new ApiException(StatusCodes.Status400BadRequest, "This round has already been paid out.");
 
         if (round.Status != RoundStatus.Open)
             throw new ApiException(StatusCodes.Status400BadRequest, "Only the current open round can be paid out.");
 
-        if (paidCount != memberCount)
-            throw new ApiException(StatusCodes.Status409Conflict, "Payout is locked. All members must pay before payout.");
+        var contributedMemberIds = round.Payments.Select(p => p.CircleMemberId).ToHashSet();
+        if (members.Any(member => !contributedMemberIds.Contains(member.Id)))
+            throw new ApiException(StatusCodes.Status400BadRequest, "Cannot pay out. Not all members have contributed.");
 
         if (receiver.HasReceived)
-            throw new ApiException(StatusCodes.Status409Conflict, "This member has already received the pot.");
+            throw new ApiException(StatusCodes.Status400BadRequest, "Member has already received the Equb payout.");
 
         if (receiver.Id != round.ReceiverMemberId || receiver.PayoutOrder != round.RoundNumber)
-            throw new ApiException(StatusCodes.Status409Conflict, "The receiver does not match the fixed payout order.");
+            throw new ApiException(StatusCodes.Status400BadRequest, "The receiver does not match the fixed payout order.");
     }
 
     public static decimal Pot(int paidOrMemberCount, decimal contribution) => paidOrMemberCount * contribution;

@@ -44,12 +44,12 @@ import { DEMO_ACCOUNTS } from '../../shared/models/models';
         <article>
           <span>02</span>
           <h2>Record every contribution</h2>
-          <p>Each round stays open until every member, including people who already received, is marked paid.</p>
+          <p>Each round stays open until every member, including earlier receivers, has a recorded contribution.</p>
         </article>
         <article>
           <span>03</span>
           <h2>Protect the payout</h2>
-          <p>The server refuses an early payout and chooses the receiver from the fixed order. Nobody types a name.</p>
+          <p>The server refuses an early payout record and sets the receiver from the fixed order. A payout is recorded in the ledger; no funds are sent.</p>
         </article>
       </section>
 

@@ -16,7 +16,7 @@ import { EtbPipe } from '../../shared/pipes/etb.pipe';
       <div>
         <p class="eyebrow">Member</p>
         <h1>{{ lang.t('dashboard') }}</h1>
-        <p class="lede">Circles you belong to. Open one to see the pot, your payment, and who receives next.</p>
+        <p class="lede">Circles you belong to. Open one to see the current pot, your contribution status, and the fixed receiver.</p>
       </div>
     </header>
     @if (loading()) { <p class="state">Loading your equbs...</p> }

@@ -28,6 +28,7 @@ import { EqubRound } from '../../shared/models/models';
                 <span class="current-tag">Current round</span>
               }
             </div>
+<<<<<<< HEAD
             <app-status-badge [status]="round.status" />
             <em>
               @if (round.payoutAmount) {
@@ -38,6 +39,10 @@ import { EqubRound } from '../../shared/models/models';
                 Upcoming
               }
             </em>
+=======
+            <app-status-badge [status]="round.status" [label]="round.status === 'PAID_OUT' ? 'Payout recorded' : round.status" />
+            <em>{{ round.status === 'PAID_OUT' ? ('Payout record · ' + (round.payoutAmount | etb)) : 'No payout record' }}</em>
+>>>>>>> origin/ekubcircle-current
             <small>{{ (round.paidOutAt || round.openedAt) | date: 'medium' }}</small>
           </li>
         }

@@ -45,19 +45,29 @@ public class PayoutService
             var receiver = members.FirstOrDefault(m => m.Id == round.ReceiverMemberId)
                 ?? throw new ApiException(StatusCodes.Status409Conflict, "The fixed-order receiver for this round is missing.");
 
-            _rules.EnsureCanPayOut(round, members.Count, round.Payments.Count, receiver);
+            _rules.EnsureCanPayOut(round, members, receiver);
 
-            var amount = EqubRuleService.Pot(members.Count, round.Circle.ContributionAmount);
+            var amount = round.Payments.Sum(payment => payment.Amount);
             round.Status = RoundStatus.PaidOut;
             round.PaidOutAt = DateTime.UtcNow;
             round.PayoutAmount = amount;
             receiver.HasReceived = true;
 
-            var circleCompleted = members.All(m => m.HasReceived);
+            var nextRound = await _db.Rounds
+                .FirstOrDefaultAsync(r => r.CircleId == round.CircleId && r.RoundNumber == round.RoundNumber + 1, ct);
+            var circleCompleted = nextRound is null && members.All(m => m.HasReceived);
+            if (!circleCompleted && nextRound is null)
+                throw new ApiException(StatusCodes.Status400BadRequest, "The next fixed-order round is missing.");
+
             if (circleCompleted)
             {
                 round.Circle.Status = CircleStatus.Completed;
                 round.Circle.CompletedAt = DateTime.UtcNow;
+            }
+            else if (nextRound is not null)
+            {
+                nextRound.Status = RoundStatus.Open;
+                nextRound.OpenedAt = DateTime.UtcNow;
             }
 
             await _db.SaveChangesAsync(ct);

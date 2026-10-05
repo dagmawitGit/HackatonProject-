@@ -76,8 +76,9 @@ Roles in tokens are `Member`, `Organizer`, or `Admin`. Circle status values are 
 
 - Authentication: `Organizer` and owner
 - Body: none
+- The organizer is created as member 1 when the equb is created and must remain in the roster.
 - Success: `200`. Status becomes `ACTIVE`. One round is created per member. Round 1 is `OPEN`. The receiver of round N is the member whose payout order is N.
-- `400` fewer than 2 members, organizer is not a member, or payout order is broken
+- `400` fewer than 2 members or payout order is broken
 - `409` already started
 - `403` not the owner
 
@@ -124,7 +125,7 @@ Roles in tokens are `Member`, `Organizer`, or `Admin`. Circle status values are 
 }
 ```
 
-`currentPot` is paid members times contribution. `expectedPot` is all members times contribution. `payoutReady` is true only when the open round is fully paid and the fixed receiver has not already received.
+`currentPot` is the sum of recorded contributions in the open round. `expectedPot` is all members times the fixed contribution amount. `payoutReady` is true only when every member has contributed and the fixed receiver has not already received.
 
 ---
 
@@ -138,8 +139,10 @@ Roles in tokens are `Member`, `Organizer`, or `Admin`. Circle status values are 
 - Authentication: `Organizer` and owner
 - Body: `{ "email": "abel@ekubcircle.et" }`
 - The user must already be registered. Payout order is the next number.
+- The organizer is already a member at order 1 and cannot be added twice or removed.
 - Success: `201`
 - `404` unknown email
+- `400` organizer removal attempted
 - `409` already a member, account suspended, or equb already started
 
 ## PUT /api/circles/{id}/members/order
@@ -155,6 +158,7 @@ Roles in tokens are `Member`, `Organizer`, or `Admin`. Circle status values are 
 - Authentication: `Organizer` and owner, forming only
 - Success: `204`
 - Remaining members are renumbered from 1
+- `400` removing the organizer
 - `404` member not in this equb
 - `409` equb already started
 
@@ -181,25 +185,26 @@ Roles in tokens are `Member`, `Organizer`, or `Admin`. Circle status values are 
 
 ---
 
-## POST /api/rounds/{roundId}/payments
+## POST /api/rounds/{roundId}/contributions
 
 - Authentication: `Organizer` and owner of that round's equb
 - Body: `{ "circleMemberId": "guid" }`
-- The amount is copied from the equb contribution. A client-supplied amount is ignored because the body has no amount field.
-- Only the open round accepts payments. A member who already received is still allowed.
-- Success: `201` payment
-- `409` duplicate payment, or round already closed
-- `400` round is not the open one, or the person is not a member
+- The server records exactly the equb's fixed contribution amount; there is no client-supplied amount.
+- Only the open round accepts contributions. A member who already received is still required to contribute.
+- Success: `201` contribution record
+- `400` duplicate contribution, round is not open, or the person is not a member
 
-## GET /api/rounds/{roundId}/payments
+## GET /api/rounds/{roundId}/contributions
 
 - Authentication: member, organizer, or admin of that equb
-- Success: `200` payments for that round
+- Success: `200` contributions for that round
 
-## GET /api/circles/{id}/payments
+## GET /api/circles/{id}/contributions
 
 - Authentication: member, organizer, or admin
-- Success: `200` every payment in the equb, for the ledger and history screens
+- Success: `200` every contribution in the equb, for the ledger and history screens
+
+The corresponding `/payments` routes remain as backward-compatible aliases.
 
 ---
 
@@ -209,11 +214,11 @@ Roles in tokens are `Member`, `Organizer`, or `Admin`. Circle status values are 
 - Body: none. A receiver id in the body is ignored. The receiver is `Round.ReceiverMemberId`.
 - Rules, in order:
   - equb is active and not suspended
-  - round is `OPEN` (already paid out returns `409`, a future round returns `400`)
-  - paid count equals member count, otherwise `409` with `Payout is locked. All members must pay before payout.`
-  - receiver has not already received
+  - round is `OPEN`
+  - every member has a recorded contribution, otherwise `400` with `Cannot pay out. Not all members have contributed.`
+  - receiver has not already received, otherwise `400` with `Member has already received the Equb payout.`
   - receiver payout order equals the round number
-- Amount stored is `memberCount × contribution`
+- Amount stored is the sum of recorded contributions in that round
 - Success: `200`
 
 ```json

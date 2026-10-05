@@ -84,6 +84,9 @@ public class MemberService
             .FirstOrDefaultAsync(m => m.Id == memberId && m.CircleId == circleId, ct)
             ?? throw new ApiException(StatusCodes.Status404NotFound, "Member not found in this equb.");
 
+        if (member.UserId == circle.OrganizerId)
+            throw new ApiException(StatusCodes.Status400BadRequest, "The organizer must remain a member of the equb.");
+
         var name = member.User.FullName;
         _db.CircleMembers.Remove(member);
         await _db.SaveChangesAsync(ct);

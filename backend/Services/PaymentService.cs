@@ -28,7 +28,7 @@ public class PaymentService
 
         await _access.RequireOrganizerCircleAsync(round.CircleId, userId, ct);
         if (round.Circle.Status != CircleStatus.Active)
-            throw new Common.ApiException(StatusCodes.Status409Conflict, "Payments can only be recorded while the equb is active.");
+            throw new Common.ApiException(StatusCodes.Status409Conflict, "Contributions can only be recorded while the equb is active.");
 
         var member = await _db.CircleMembers.Include(m => m.User)
             .FirstOrDefaultAsync(m => m.Id == request.CircleMemberId, ct)

@@ -84,7 +84,7 @@ export interface EqubRound {
   memberCount: number;
 }
 
-export interface PaymentRecord {
+export interface ContributionRecord {
   id: string;
   roundId: string;
   roundNumber: number;

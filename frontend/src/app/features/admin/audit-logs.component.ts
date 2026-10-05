@@ -18,7 +18,7 @@ import { AuditEntry } from '../../shared/models/models';
           <option>USER_LOGIN</option>
           <option>CIRCLE_CREATED</option>
           <option>CIRCLE_STARTED</option>
-          <option>PAYMENT_RECORDED</option>
+          <option value="PAYMENT_RECORDED">CONTRIBUTION_RECORDED</option>
           <option>PAYOUT_ATTEMPTED</option>
           <option>PAYOUT_COMPLETED</option>
           <option>ROUND_OPENED</option>
@@ -35,7 +35,7 @@ import { AuditEntry } from '../../shared/models/models';
       <ul class="feed">
         @for (log of logs(); track log.id) {
           <li>
-            <strong>{{ log.action }}</strong>
+            <strong>{{ actionLabel(log.action) }}</strong>
             <p>{{ log.description }}</p>
             <small>{{ log.userName || 'System' }} · {{ log.createdAt | date: 'medium' }}</small>
           </li>
@@ -54,6 +54,10 @@ export class AuditLogsComponent implements OnInit {
 
   ngOnInit(): void {
     this.load();
+  }
+
+  actionLabel(action: string): string {
+    return action === 'PAYMENT_RECORDED' ? 'CONTRIBUTION_RECORDED' : action;
   }
 
   load(): void {
