@@ -69,6 +69,26 @@ public class AuditLogResponse
     public DateTime CreatedAt { get; set; }
 }
 
+public class RoundHistoryResponse
+{
+    public Guid RoundId { get; set; }
+    public int RoundNumber { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public DateTime StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
+    public decimal ContributionAmount { get; set; }
+    public decimal PayoutAmount { get; set; }
+    public string CircleName { get; set; } = string.Empty;
+    public Guid CircleId { get; set; }
+    public bool IsPaidOut { get; set; }
+}
+
+public class MemberRoundHistoryRequest
+{
+    public Guid MemberId { get; set; }
+    public Guid? CircleId { get; set; }
+}
+
 // public class AdminUserDto
 // {
 //     public Guid Id { get; set; }
@@ -78,5 +98,4 @@ public class AuditLogResponse
 //     public string Status { get; set; } = string.Empty;
 //     public DateTime CreatedAt { get; set; }
 // }
-
 
