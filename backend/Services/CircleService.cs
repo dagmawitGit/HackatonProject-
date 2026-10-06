@@ -44,6 +44,15 @@ public class CircleService
         };
 
         _db.Circles.Add(circle);
+        _db.CircleMembers.Add(new CircleMember
+        {
+            Id = Guid.NewGuid(),
+            CircleId = circle.Id,
+            UserId = userId,
+            PayoutOrder = 1,
+            HasReceived = false,
+            JoinedAt = DateTime.UtcNow
+        });
         await _db.SaveChangesAsync(ct);
         await _audit.LogAsync(userId, "CIRCLE_CREATED", "Circle", circle.Id, $"Created equb \"{circle.Name}\".", ct);
         return await MapAsync(circle.Id, ct);
@@ -158,6 +167,7 @@ public class CircleService
 
         var open = rounds.FirstOrDefault(r => r.Status == RoundStatus.Open);
         var paidCount = open?.Payments.Count ?? 0;
+        var currentPot = open?.Payments.Sum(p => p.Amount) ?? 0m;
         var memberCount = members.Count;
         var receivedCount = members.Count(m => m.HasReceived);
         var waiting = new List<string>();
@@ -168,7 +178,9 @@ public class CircleService
         }
 
         var paidOutRounds = rounds.Where(r => r.Status == RoundStatus.PaidOut).ToList();
-        var paymentRecordsComplete = paidOutRounds.All(r => r.Payments.Count == memberCount)
+        var paymentRecordsComplete = paidOutRounds.All(r => r.Payments.Count == memberCount
+                && r.Payments.Select(p => p.CircleMemberId).Distinct().Count() == memberCount
+                && r.Payments.All(p => p.Amount == circle.ContributionAmount))
             && (open is null || open.Payments.Select(p => p.CircleMemberId).Distinct().Count() == open.Payments.Count);
 
         return new CircleSummaryResponse
@@ -176,7 +188,7 @@ public class CircleService
             MemberCount = memberCount,
             ContributionAmount = circle.ContributionAmount,
             PaidCount = paidCount,
-            CurrentPot = EqubRuleService.Pot(paidCount, circle.ContributionAmount),
+            CurrentPot = currentPot,
             ExpectedPot = EqubRuleService.Pot(memberCount, circle.ContributionAmount),
             CurrentRound = open?.RoundNumber,
             TotalRounds = rounds.Count > 0 ? rounds.Count : memberCount,
@@ -188,7 +200,9 @@ public class CircleService
             CurrentReceiverMemberId = open?.ReceiverMemberId,
             CircleStatus = StatusNames.Circle(circle.Status),
             RoundStatus = open is null ? null : StatusNames.Round(open.Status),
-            PayoutReady = open is not null && memberCount > 0 && paidCount == memberCount && !open.Receiver.HasReceived,
+            PayoutReady = open is not null && memberCount > 0
+                && members.All(member => open.Payments.Any(payment => payment.CircleMemberId == member.Id))
+                && !open.Receiver.HasReceived,
             IsSuspended = circle.IsSuspended,
             WaitingFor = waiting,
             NextReceivers = members

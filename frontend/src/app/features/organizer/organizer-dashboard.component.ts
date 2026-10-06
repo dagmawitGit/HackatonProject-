@@ -5,7 +5,7 @@ import { apiError } from '../../core/api-error';
 import { CircleService } from '../../core/services/circle.service';
 import { LanguageService } from '../../core/services/language.service';
 import { StatusBadgeComponent } from '../../shared/components/status-badge.component';
-import { Circle } from '../../shared/models/models';
+import { Circle, CircleSummary } from '../../shared/models/models';
 import { EtbPipe } from '../../shared/pipes/etb.pipe';
 
 @Component({
@@ -33,6 +33,13 @@ import { EtbPipe } from '../../shared/pipes/etb.pipe';
             </div>
             <p>{{ circle.contributionAmount | etb }} · {{ circle.meetingLabel }}</p>
             <p>{{ circle.memberCount }} members</p>
+            @if (summaries()[circle.id]; as summary) {
+              <p>Current pot: <strong>{{ summary.currentPot | etb }}</strong></p>
+              <p>Contribution status: {{ summary.paidCount }} / {{ summary.memberCount }} paid</p>
+              <p>Fixed receiver: {{ summary.currentReceiver || 'No open round' }}</p>
+            } @else {
+              <p class="state">Loading current round status...</p>
+            }
           </a>
         }
       </div>
@@ -44,6 +51,7 @@ export class OrganizerDashboardComponent implements OnInit {
   private readonly session = inject(SessionStore);
   readonly lang = inject(LanguageService);
   readonly circles = signal<Circle[]>([]);
+  readonly summaries = signal<Record<string, CircleSummary>>({});
   readonly loading = signal(true);
   readonly error = signal('');
 
@@ -51,7 +59,13 @@ export class OrganizerDashboardComponent implements OnInit {
     const me = this.session.user()?.id;
     this.api.list().subscribe({
       next: (circles) => {
-        this.circles.set(circles.filter((circle) => circle.organizerId === me));
+        const ownedCircles = circles.filter((circle) => circle.organizerId === me);
+        this.circles.set(ownedCircles);
+        for (const circle of ownedCircles) {
+          this.api.summary(circle.id).subscribe({
+            next: (summary) => this.summaries.update((current) => ({ ...current, [circle.id]: summary })),
+          });
+        }
         this.loading.set(false);
       },
       error: (err: unknown) => {

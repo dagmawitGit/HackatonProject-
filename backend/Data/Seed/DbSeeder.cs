@@ -62,7 +62,12 @@ public static class DbSeeder
         }, organizerId, ct);
 
         foreach (var person in people)
+        {
+            if (person.Role == UserRole.Organizer)
+                continue;
+
             await members.AddAsync(circle.Id, new AddMemberRequest { Email = person.Email }, organizerId, ct);
+        }
 
         await circles.StartAsync(circle.Id, organizerId, ct);
     }

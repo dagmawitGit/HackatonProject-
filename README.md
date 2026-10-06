@@ -31,10 +31,10 @@ The organizer never types the receiver at payout time. The API reads the fixed o
 - Register and log in with JWT, as a member, organizer, or seeded platform admin
 - Create an equb, add and reorder members, then start it
 - Starting locks the member list, contribution, and payout order, and creates one round per member
-- Record one payment per member per round
-- Block payout until every member has paid
+- Record one contribution per member per round
+- Block payout until every member has contributed
 - Pay the recorded pot to the server-chosen receiver
-- Keep previous receivers on the payment list for later rounds
+- Keep previous receivers responsible for contributing in later rounds
 - Open the next round only after the current one is paid out
 - Complete the equb when every member has received exactly once
 - Member, organizer, and admin dashboards
@@ -95,7 +95,7 @@ POST /api/auth/login
 POST /api/circles
 POST /api/circles/{id}/members
 POST /api/circles/{id}/start
-POST /api/rounds/{roundId}/payments
+POST /api/rounds/{roundId}/contributions
 POST /api/rounds/{roundId}/payout
 POST /api/circles/{id}/rounds/next
 ```
@@ -214,15 +214,15 @@ The judge demo:
 
 1. Log in as Hana.
 2. Create **Unity Equb**, contribution **25000**, meeting **Monthly**.
-3. Add Hana, Abel, Ruth, Samuel, Meron, and Dawit, in that order.
+3. Hana is automatically added as member 1. Add Abel, Ruth, Samuel, Meron, and Dawit in payout order.
 4. Show the payout order.
 5. Start the equb. Members, contribution, and order lock. Six rounds appear.
 6. On round 1, mark five members paid.
-7. Open payout. The API rejects it: payout locked, 5/6 paid.
+7. Open payout. The API rejects it because one member has not contributed (5/6 paid).
 8. Mark the sixth member paid. Current pot becomes 150,000 ETB.
 9. Pay out. The server selects Hana. Do not type a receiver.
 10. Round 1 is paid out.
-11. Open round 2. Hana is still on the payment list, marked as already received.
+11. Open round 2. Hana is still responsible for contributing, although she has already received a payout.
 12. Paying round 1 again is rejected.
 
 Tests covering these rules are in `backend/tests/EqubEngineTests.cs`.
@@ -237,13 +237,13 @@ dotnet test
 - English is the only fully translated language. The selector also has Afaan Oromo and Amharic for the shell.
 - Notifications are an activity feed from the audit log, not SMS or push.
 - One organizer owns each equb. There is no co-organizer.
-- Admin suspension blocks changes. It does not edit payment history.
+- Admin suspension blocks changes. It does not edit contribution history.
 - The app does not send reminders, print PDFs, or calculate fines.
 - Demo passwords and the JWT signing key in `appsettings.json` are for local use only.
 
 ## Future Improvements
 
-- Late-payment flag and a fixed late fine that still cannot bypass the payout lock
+- Late-contribution flag and a fixed late fine that still cannot bypass the payout lock
 - A draw among members who have not received, if a circle wants that instead of a fixed order
 - Completed-circle analytics over many equbs
 - Fuller Oromo and Amharic translations
@@ -255,4 +255,4 @@ dotnet test
 - 0:30 — Show Angular → API → EF Core → PostgreSQL.
 - 1:00 — Live demo from create, through the locked 5/6 payout, to round 2 where the receiver still pays.
 - 4:00 — Open the summary page: progress, next receivers, integrity checks.
-- 4:30 — Limitations: no real payments, no SMS. The value is a ledger people can trust.
+- 4:30 — Limitations: no electronic money transfers, no SMS. The value is a ledger people can trust.

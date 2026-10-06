@@ -22,14 +22,15 @@ import { StatusBadgeComponent } from '../../shared/components/status-badge.compo
         <p class="state">There is no open round right now.</p>
       } @else {
         <article class="panel">
-          <h2>Round {{ round()!.roundNumber }} · receiver {{ round()!.receiverName }}</h2>
-          <p>The receiver is fixed. A member who already received the pot is still listed.</p>
+          <h2>Round {{ round()!.roundNumber }} · fixed receiver {{ round()!.receiverName }}</h2>
+          <p>The receiver is fixed for this round. Members with payout records from earlier rounds still contribute.</p>
+          <h3>Contribution status</h3>
           <ul class="people">
             @for (member of members(); track member.id) {
               <li>
                 <span>{{ member.payoutOrder }}. {{ member.fullName }}</span>
-                <app-status-badge [status]="member.paidCurrentRound ? 'RECORDED' : 'WAITING'" [label]="member.paidCurrentRound ? 'Paid' : 'Waiting'" />
-                @if (member.hasReceived) { <em class="still">Already received — still pays</em> }
+                <app-status-badge [status]="member.paidCurrentRound ? 'RECORDED' : 'UNPAID'" [label]="member.paidCurrentRound ? 'Paid' : 'Unpaid'" />
+                @if (member.hasReceived) { <em class="still">Has a payout record — still contributes</em> }
               </li>
             }
           </ul>

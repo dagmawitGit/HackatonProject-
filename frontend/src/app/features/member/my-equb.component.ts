@@ -19,7 +19,7 @@ import { Circle, CircleSummary, Member } from '../../shared/models/models';
         <div>
           <p class="eyebrow">{{ circle()!.meetingLabel }}</p>
           <h1>{{ circle()!.name }}</h1>
-          <p class="lede">How much is in the pot, who receives, and whether you still owe this round.</p>
+          <p class="lede">The current pot, fixed receiver, and whether your contribution is recorded for this round.</p>
         </div>
       </header>
       <app-circle-nav [id]="id" mode="member" />
@@ -29,8 +29,8 @@ import { Circle, CircleSummary, Member } from '../../shared/models/models';
           <h2>Your place</h2>
           @if (me()) {
             <p>Payout order <strong>#{{ me()!.payoutOrder }}</strong></p>
-            <p>This round: <strong>{{ me()!.paidCurrentRound ? 'Recorded as paid' : 'Not recorded yet' }}</strong></p>
-            <p>Pot received: <strong>{{ me()!.hasReceived ? 'Yes — you still pay future rounds' : 'Not yet' }}</strong></p>
+            <p>Contribution status: <strong>{{ me()!.paidCurrentRound ? 'Paid' : 'Unpaid' }}</strong></p>
+            <p>Payout record: <strong>{{ me()!.hasReceived ? 'Recorded — still contribute in future rounds' : 'Not yet' }}</strong></p>
           } @else {
             <p class="state">You are viewing this equb, but your membership row was not found.</p>
           }

@@ -14,8 +14,8 @@ import { CircleSummary, EqubRound, PayoutResult } from '../../shared/models/mode
     <header class="page-head">
       <div>
         <p class="eyebrow">Organizer</p>
-        <h1>Payout</h1>
-        <p class="lede">You do not choose the receiver. The server reads the fixed order for this round.</p>
+        <h1>Payout Record</h1>
+        <p class="lede">The fixed receiver comes from the round order. Recording a payout adds a ledger entry; it does not send funds.</p>
       </div>
     </header>
     <app-circle-nav [id]="id" />
@@ -27,51 +27,50 @@ import { CircleSummary, EqubRound, PayoutResult } from '../../shared/models/mode
       @if (summary()!.circleStatus === 'FORMING') {
         <article class="panel">
           <h2>Equb is still forming</h2>
-          <p>Start the equb before anyone can be paid. Rounds do not exist yet.</p>
+          <p>Start the equb before opening contribution rounds or creating payout records.</p>
         </article>
       } @else if (!round()) {
         <article class="panel">
           @if (summary()!.circleStatus === 'COMPLETED' || result()?.circleCompleted) {
             <h2>Equb complete</h2>
-            <p>Every member has received exactly once.</p>
+            <p>Every member has one payout record.</p>
           } @else {
-            <h2>No open round</h2>
-            <p>The next round opens automatically after a payout is recorded. Await the next cycle.</p>
-          }
+            <h2>No open round</h2>            <p>The next round opens automatically after a payout record is created. The previous receiver still contributes.</p> }
         </article>
       } @else {
         <section class="lock-card" [class.ready]="summary()!.payoutReady">
           <p class="lock-kicker">{{ summary()!.payoutReady ? 'PAYOUT READY' : 'PAYOUT LOCKED' }}</p>
           <h2>{{ summary()!.paidCount }} / {{ summary()!.memberCount }} members paid</h2>
+          <p>Fixed receiver</p>
+          <strong>{{ round()!.receiverName }}</strong>
+          <p>Current pot</p>
+          <strong>{{ summary()!.currentPot | etb }}</strong>
+          <p>Contribution status</p>
           @if (!summary()!.payoutReady) {
-            <p>Waiting for:</p>
+            <p>Unpaid members:</p>
             <ul>
               @for (name of summary()!.waitingFor; track name) { <li>{{ name }}</li> }
             </ul>
-            <p>Everyone must pay before the pot can be paid.</p>
+            <p>Every member must have a recorded contribution before a payout record can be created.</p>
           } @else {
-            <p>Receiver</p>
-            <strong>{{ summary()!.currentReceiver }}</strong>
-            <p>Amount</p>
-            <strong>{{ summary()!.expectedPot | etb }}</strong>
-            <p class="fine">Recorded pot = members × contribution. No money moves.</p>
+            <p>All members are paid. The current pot shown above is calculated by the server from recorded contributions.</p>
           }
           @if (summary()!.payoutReady && !confirming()) {
-            <button class="button" type="button" (click)="confirming.set(true)">Pay out</button>
+            <button class="button" type="button" (click)="confirming.set(true)">Record Payout</button>
           }
           @if (confirming()) {
             <div class="modal">
-              <p>Record the pot of {{ summary()!.expectedPot | etb }} for round {{ round()!.roundNumber }}?</p>
-              <p>The server will pay {{ summary()!.currentReceiver }}. You cannot pick someone else.</p>
+              <p>Create a payout record for round {{ round()!.roundNumber }}?</p>
+              <p>The server records the current pot for the fixed receiver shown above. This is a ledger entry only; it does not send funds.</p>
               <div class="row">
-                <button class="button" type="button" [disabled]="busy()" (click)="payout()">Confirm payout</button>
+                <button class="button" type="button" [disabled]="busy()" (click)="payout()">Confirm Record</button>
                 <button class="ghost" type="button" (click)="confirming.set(false)">Cancel</button>
               </div>
             </div>
           }
         </section>
         @if (result()?.circleCompleted) {
-          <p class="banner good">The equb is complete. Every member received exactly once.</p>
+          <p class="banner good">The equb is complete. Every member has one payout record.</p>
         }
       }
     }
@@ -104,7 +103,7 @@ export class PayoutComponent implements OnInit {
         this.busy.set(false);
         this.confirming.set(false);
         this.result.set(result);
-        this.message.set(result.message);
+        this.message.set(`Payout record saved for round ${result.roundNumber}.`);
         this.reload();
       },
       error: (err: unknown) => {

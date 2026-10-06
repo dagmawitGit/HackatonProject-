@@ -13,8 +13,8 @@ import { EqubRound } from '../../shared/models/models';
     <header class="page-head">
       <div>
         <p class="eyebrow">Organizer</p>
-        <h1>Round history</h1>
-        <p class="lede">The notebook, in order. Each name can receive once.</p>
+        <h1>Payout Record History</h1>
+        <p class="lede">Rounds in fixed order, with a record shown for each completed payout. No funds are sent.</p>
       </div>
     </header>
     <app-circle-nav [id]="id" />

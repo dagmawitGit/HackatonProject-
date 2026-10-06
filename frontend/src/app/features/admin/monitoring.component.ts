@@ -11,7 +11,7 @@ import { AdminOverview } from '../../shared/models/models';
       <div>
         <p class="eyebrow">Admin</p>
         <h1>System monitoring</h1>
-        <p class="lede">The API is up, the database is reachable, and no payment gateway is connected.</p>
+        <p class="lede">The API is up and the database is reachable. Payouts are ledger records; the system does not send funds.</p>
       </div>
     </header>
     @if (loading()) { <p class="state">Checking the system...</p> }

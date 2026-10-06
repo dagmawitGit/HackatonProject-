@@ -3,19 +3,19 @@ import { ActivatedRoute } from '@angular/router';
 import { SessionStore } from '../../core/auth/session.store';
 import { apiError } from '../../core/api-error';
 import { CircleService } from '../../core/services/circle.service';
-import { PaymentTableComponent } from '../payments/payment-table.component';
+import { ContributionTableComponent } from '../payments/contribution-table.component';
 import { CircleNavComponent } from '../circle/circle-nav.component';
-import { PaymentRecord } from '../../shared/models/models';
+import { ContributionRecord } from '../../shared/models/models';
 
 @Component({
   selector: 'app-contribution-history',
-  imports: [PaymentTableComponent, CircleNavComponent],
+  imports: [ContributionTableComponent, CircleNavComponent],
   template: `
-    <header class="page-head"><div><p class="eyebrow">Member</p><h1>Contribution history</h1><p class="lede">Your recorded contributions. These are ledger entries, not transfers.</p></div></header>
+    <header class="page-head"><div><p class="eyebrow">Member</p><h1>Contribution history</h1><p class="lede">Your recorded contributions. Each entry is a ledger record; the app does not send funds.</p></div></header>
     <app-circle-nav [id]="id" mode="member" />
     @if (loading()) { <p class="state">Loading contributions...</p> }
     @else if (error()) { <p class="state bad">{{ error() }}</p> }
-    @else { <app-payment-table [payments]="mine()" /> }
+    @else { <app-contribution-table [contributions]="mine()" /> }
   `,
 })
 export class ContributionHistoryComponent implements OnInit {
@@ -25,13 +25,13 @@ export class ContributionHistoryComponent implements OnInit {
   readonly id = this.route.snapshot.paramMap.get('id') ?? '';
   readonly loading = signal(true);
   readonly error = signal('');
-  readonly mine = signal<PaymentRecord[]>([]);
+  readonly mine = signal<ContributionRecord[]>([]);
 
   ngOnInit(): void {
-    this.api.circlePayments(this.id).subscribe({
-      next: (payments) => {
+    this.api.circleContributions(this.id).subscribe({
+      next: (contributions) => {
         const name = this.session.user()?.fullName;
-        this.mine.set(payments.filter((payment) => payment.memberName === name));
+        this.mine.set(contributions.filter((contribution) => contribution.memberName === name));
         this.loading.set(false);
       },
       error: (err: unknown) => {
