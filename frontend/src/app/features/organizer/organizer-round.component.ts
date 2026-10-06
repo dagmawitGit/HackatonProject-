@@ -32,9 +32,7 @@ import { Circle, CircleSummary, EqubRound, Member } from '../../shared/models/mo
         <p class="banner good">Every member has one payout record. This equb is complete.</p>
       } @else if (!round()) {
         <article class="panel">
-          <h2>No open round</h2>
-          <p>The next round opens automatically after a payout record is created.</p>
-        </article>
+          <h2>No open round</h2>          <p>The previous round is paid out. The next round opens automatically after the payout is recorded.</p>    </article>
       } @else {
         <article class="panel">
           <div class="row">
@@ -53,14 +51,12 @@ import { Circle, CircleSummary, EqubRound, Member } from '../../shared/models/mo
                 </span>
                 @if (member.paidCurrentRound) {
                   <app-status-badge status="RECORDED" label="Paid" />
-                } @else {
-                  <span class="row">
+                } @else {                  <span class="row">
                     <app-status-badge status="UNPAID" label="Unpaid" />
                     <button class="button" type="button" [disabled]="busyId() === member.id" (click)="mark(member)">
                       {{ busyId() === member.id ? 'Saving...' : 'Mark as Paid' }}
                     </button>
-                  </span>
-                }
+                  </span>       }
               </li>
             }
           </ul>
@@ -94,9 +90,7 @@ export class OrganizerRoundComponent implements OnInit {
     this.error.set('');
     this.api.recordContribution(round.id, member.id).subscribe({
       next: () => {
-        this.busyId.set('');
-        this.message.set(`Contribution recorded for ${member.fullName}. Status: Paid.`);
-        this.reload();
+        this.busyId.set('');        this.message.set(`Contribution recorded for ${member.fullName}. Status: Paid.`); this.reload();
       },
       error: (err: unknown) => {
         this.busyId.set('');

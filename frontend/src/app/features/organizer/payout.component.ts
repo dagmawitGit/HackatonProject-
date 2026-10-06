@@ -35,9 +35,7 @@ import { CircleSummary, EqubRound, PayoutResult } from '../../shared/models/mode
             <h2>Equb complete</h2>
             <p>Every member has one payout record.</p>
           } @else {
-            <h2>No open round</h2>
-            <p>The next round opens automatically after a payout record is created. The previous receiver still contributes.</p>
-          }
+            <h2>No open round</h2>            <p>The next round opens automatically after a payout record is created. The previous receiver still contributes.</p> }
         </article>
       } @else {
         <section class="lock-card" [class.ready]="summary()!.payoutReady">

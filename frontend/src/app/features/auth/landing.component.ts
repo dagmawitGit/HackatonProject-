@@ -25,7 +25,6 @@ import { DEMO_ACCOUNTS } from '../../shared/models/models';
       </header>
 
       <section class="hero">
-        <p class="eyebrow">QIYAS Hackathon 2026 · Challenge 3</p>
         <h1>EkubCircle</h1>
         <p class="lede">{{ lang.t('tagline') }}</p>
         <p class="callout">{{ lang.t('ledger') }}</p>

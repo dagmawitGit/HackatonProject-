@@ -1,7 +1,9 @@
 namespace EkubCircle.Api.Entities;
 
 public class Circle
+    
 {
+    //circle
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public decimal ContributionAmount { get; set; }

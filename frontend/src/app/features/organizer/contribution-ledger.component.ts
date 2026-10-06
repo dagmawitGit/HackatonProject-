@@ -13,9 +13,7 @@ import { ContributionRecord } from '../../shared/models/models';
     <header class="page-head">
       <div>
         <p class="eyebrow">Organizer</p>
-        <h1>Contribution ledger</h1>
-        <p class="lede">Every contribution recorded in this equb. Duplicate contributions are rejected by the server.</p>
-      </div>
+        <h1>Contribution ledger</h1>        <p class="lede">Every contribution recorded in this equb. Duplicate contributions are rejected by the server.</p>    </div>
     </header>
     <app-circle-nav [id]="id" />
     @if (loading()) { <p class="state">Loading the ledger...</p> }
